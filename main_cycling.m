@@ -15,12 +15,12 @@ clc
 %% Initialize S
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
-[S] = initializeSettings('gait1018_cycling');
+[S] = initializeSettings('LaiArnold2D');
 
 %% Settings
 
 % name of the subject
-S.subject.name = 'gait1018_cycling';
+S.subject.name = 'LaiArnold2D';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name '_multifibre'],'tact_sensitivity');
@@ -29,7 +29,8 @@ S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name])
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 % TODO: THE INITIAL GUESS WILL LIKELY HAVE TO BE UPDATED TO EITHER A "HOT
 % START" OR "QUASI-RANDOM" CYCLING GUESS.
-S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_cycling.mot');
+% S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_cycling.mot');
+S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_cycling_Lai.mot'); 
 S.solver.IG_selection_gaitCyclePercent = 100;
 % S.solver.IG_selection = 'quasi-random';
 
@@ -52,10 +53,10 @@ S.multifibre.smeta = linspace(1.5, 2.5, S.multifibre.NFibre); % most efficient t
 % Set number of threads
 S.solver.N_threads = 6;
 
-S.misc.gaitmotion_type = 'HalfGaitCycle';
+S.misc.gaitmotion_type = 'HalfGaitCycle'; % FullGaitCycle
 
 % Visualize bounds
-S.misc.visualize_bounds = false;
+% S.misc.visualize_bounds = true;
 
 % give the path to the osim model of your subject
 osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']);
@@ -70,23 +71,37 @@ S.misc.task = 'cycling';
 % S.metabolicE.model = 'MinettiAlexander';
 
 % S.bounds.t_final.lower = 0.01;
-S.bounds.default_coordinate_bounds = 'Running_Coordinate_Bounds.csv';
+S.misc.default_msk_geom_bounds = 'default_msk_geom_bounds_cycling.csv';
+% S.bounds.default_coordinate_bounds = 'Running_Coordinate_Bounds.csv';
+S.bounds.default_coordinate_bounds = 'LaiArnold_Cycling_Coordinate_Bounds.csv';
+S.subject.default_coord_lim_torq_coeff = 'default_coord_lim_torq_coeff_Lai.csv';
 S.OpenSimADOptions.verbose_mode = true;
 
 % TODO: ADD DEFAULTS TO DEFAULT SETTING FUNCTION
 S.cycling.rpm = 80;
-S.bounds.FPedal.lower = -500; % N
-S.bounds.FPedal.upper = 500; % N
+S.bounds.FPedal.lower = -1000; % N
+S.bounds.FPedal.upper = 1000; % N
+S.bounds.alpha_crank.lower = -100;
+S.bounds.alpha_crank.upper = 100;
+
 % S.cycling.min_crank_omega = -0.1;
 S.cycling.power = 200; % watt
+% 
 S.cycling.tol_omega = 1e-2;
+gear_ratio = 52/17;
+S.cycling.tau_eff = -1*(2.125 * gear_ratio + 1.379*1e-4 * gear_ratio^3 * S.cycling.rpm^2);
+S.cycling.I_eff = 3.456 * 1e-3 + 10.442 * gear_ratio^2;
 
-S.bounds.t_final.lower = 0.1;
-S.bounds.t_final.upper = (60 / S.cycling.rpm) * 1.2;
+% S.post_process.load_prev_opti_vars = true;
+% S.post_process.rerun = true;
+% S.misc.result_filename = 'gait1018_cycling_v78';
 
-S.post_process.load_prev_opti_vars = true;
-S.post_process.rerun = true;
-S.misc.result_filename = 'gait1018_cycling_v19';
+S.misc.msk_geom_n_samples = 2500;
+S.misc.threshold_lMT_fit = 0.01;
+S.misc.threshold_dM_fit = 0.01;
+S.misc.poly_order.upper = 5;
+S.misc.poly_order.lower = 3;
+
 
 
 %% Run predictive simulations
@@ -120,20 +135,23 @@ if ~S.solver.run_as_batch_job
     
     % set path to saved result
     result_paths{1} = fullfile(S.misc.save_folder,[savename '.mat']);
-    
+    reference_path = ...
+        'C:\Users\nml-p\Documents\Projects\PredictiveCycling\ReferenceData\Dick_et_al_2016\PredSimReference\ReferenceData_80rpm_200w.mat';
+
     % Cell array with legend name for each result
-    legend_names = {'single fibre'};
-    
+    % legend_names = {'single fibre'};
+
     % add path to subfolder with plotting functions
     addpath(fullfile(pathRepo,'PlotFigures'))
-    
-    figure_settings(1).name = 'Qs';
-    figure_settings(1).dofs = {'all_coords'};
-    figure_settings(1).variables = {'Qs'};
-    figure_settings(1).savepath = [];
-    figure_settings(1).filetype = {};
 
-    % call plotting function
-    plot_figures(result_paths, legend_names, figure_settings);
+    % figure_settings(1).name = 'Qs';
+    % figure_settings(1).dofs = {'all_coords'};
+    % figure_settings(1).variables = {'Qs'};
+    % figure_settings(1).savepath = [];
+    % figure_settings(1).filetype = {};
+
+    % % call plotting function
+    % plot_figures(result_paths, legend_names, figure_settings);
+    plot_cycling(result_paths{1}, reference_path);
 
 end

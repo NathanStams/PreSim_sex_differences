@@ -56,6 +56,7 @@ scaling.Moments = ones(1,NCoord);
 % Pedal forces
 if strcmp(S.misc.task, 'cycling')
     scaling.FPedal = 100;
+    scaling.alpha_crank = 10;
 end
 
 %% Based on provided table

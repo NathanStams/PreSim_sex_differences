@@ -27,9 +27,9 @@ S.subject.name = 'gait1018';
 S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name]);
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
-S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_GC.mot');
-S.solver.IG_selection_gaitCyclePercent = 100;
-% S.solver.IG_selection = 'quasi-random';
+% S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_GC.mot');
+% S.solver.IG_selection_gaitCyclePercent = 100;
+S.solver.IG_selection = 'quasi-random';
 
 % Set options for multi motor unit (MMU) muscle model
 S.multifibre.use_multifibre_muscles = false;
@@ -68,7 +68,7 @@ S.solver.run_as_batch_job = false;
 
 % S.bounds.t_final.lower = 0.01;
 % S.bounds.default_coordinate_bounds = 'Running_Coordinate_Bounds.csv';
-
+S.misc.task = 'walking';
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job

@@ -193,6 +193,16 @@ opti.subject_to(bounds.FPedal.lower'*ones(1,d*N) < FPedal_col < ...
     bounds.FPedal.upper'*ones(1,d*N));
 opti.set_initial(FPedal_col, guess.FPedal_col');
 
+% alpha_crank = opti.variable(1, N+1);
+% opti.subject_to(bounds.alpha_crank.lower'*ones(1,N+1) < alpha_crank < ...
+%     bounds.alpha_crank.upper'*ones(1,N+1));
+% opti.set_initial(alpha_crank, guess.alpha_crank');
+% 
+% alpha_crank_col = opti.variable(1, d*N);
+% opti.subject_to(bounds.alpha_crank.lower'*ones(1,d*N) < alpha_crank_col < ...
+%     bounds.alpha_crank.upper'*ones(1,d*N));
+% opti.set_initial(alpha_crank_col, guess.alpha_crank_col');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Define controls
 % Time derivative of muscle activations (states) at mesh points
@@ -321,6 +331,9 @@ Qdotskj     = [Qdotsk Qdotsj];
 FPedalk     = MX.sym('FPedalk', n_FPedal);
 FPedalj     = MX.sym('FPedalj', n_FPedal,d);
 FPedalkj    = [FPedalk FPedalj];
+% alpha_crankk = MX.sym('alpha_crankk', 1);
+% alpha_crankj = MX.sym('alpha_crankj', 1, d);
+% alpha_crankkj = [alpha_crankk alpha_crankj];
 if nq.torqAct > 0
     a_ak        = MX.sym('a_ak',nq.torqAct);
     a_aj        = MX.sym('a_akmesh',nq.torqAct,d);
@@ -370,6 +383,7 @@ for j=1:d
     Aj_nsc = Aj.*(scaling.Qdotdots'*ones(1,size(Aj,2)));
     vAk_nsc = vAk.*scaling.vA;
     FPedalkj_nsc = FPedalkj.*scaling.FPedal;
+    % alpha_crankkj_nsc = alpha_crankkj.*scaling.alpha_crank;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get muscle-tendon lengths, velocities, and moment arms
@@ -413,7 +427,7 @@ for j=1:d
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get passive joint torques for dynamics
     Tau_passj = f_casadi.AllPassiveTorques(Qskj_nsc(:,j+1),Qdotskj_nsc(:,j+1));
-    % Get passive joint torques for cost function
+    % Get passive joint torques for cost functionJ
     Tau_passj_cost = f_casadi.AllPassiveTorques_cost(Qskj_nsc(:,j+1),Qdotskj_nsc(:,j+1));
     
     % Expression for the state derivatives at the collocation points
@@ -487,7 +501,7 @@ for j=1:d
     F_ext_input(model_info.ExtFunIO.input.Qdotdots.all,1) = Aj_nsc(:,j);
     % Assign pedal forces
     F_ext_input([model_info.ExtFunIO.input.Forces.pedal_force_r ...
-        model_info.ExtFunIO.input.Forces.pedal_force_l],1) = FPedalkj_nsc(:, j);
+        model_info.ExtFunIO.input.Forces.pedal_force_l],1) = FPedalkj_nsc(:, j+1);
     % Assign forces and moments 
     F_ext_input = F_ext_input + M_ort_body_totj; % body forces and body moments from orthoses
 
@@ -505,11 +519,27 @@ for j=1:d
         norm(crank_r)^2;
     omega_crank_l = cross(crank_l, Tj(model_info.ExtFunIO.velocity.pedal_l)) / ...
         norm(crank_l)^2;
+
+    % We constrain the left and right pedals to have the same angular velocity, as
+    % they are rigidly attached to each other
     eq_constr{end+1} = omega_crank_l(3) - omega_crank_r(3);
-    crank_omega = mean([omega_crank_r(3); omega_crank_l(3)]);
-    M_crank = cross(Tj(model_info.ExtFunIO.position.pedal_r), ...
-        FPedalkj_nsc(1:3, j)) + cross(Tj(model_info.ExtFunIO.position.pedal_l), ...
-        FPedalkj_nsc(4:6, j));
+
+    % We also enforce that the angular acceleration of the crank is the
+    % time derivative of its angular velocity
+    omega_crank = omega_crank_r(3);
+    % omega_crankp_nsc = omega_crank*C(:,j+1);
+    % eq_constr{end+1} = (h*alpha_crankkj_nsc(:,j+1) - omega_crankp_nsc)./scaling.alpha_crank;
+    
+    % The effective crank torque is constrained to alpha as wel
+    M_crank = cross(crank_r,-FPedalkj_nsc(1:3, j+1)) + cross(crank_l, ...
+        -FPedalkj_nsc(4:6, j+1));
+    % eq_constr{end+1} = (M_crank(3) - S.cycling.tau_eff) - ...
+    %     (S.cycling.I_eff * alpha_crankkj_nsc(:, j+1));
+    % eq_constr{end+1} = M_crank(3) - S.cycling.power / omega_crank;
+    % TODO: ENFORCE DYNAMICS BETTER
+
+    % Add pedaling smoothness as cost
+    % J = J + B(j+1) * ((-2*pi*S.cycling.rpm)/60 - omega_crank)^2 * h;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Add path constraints
@@ -632,7 +662,7 @@ for i_dc=1:length(ineq_constr_distance)
 end
 ineq_constr_syn = vertcat(ineq_constr_syn{:});
 
-% Casadi function to get constraints and objective
+% Casadi function to get constraints and objective ,alpha_crankk,alpha_crankj
 coll_input_vars_def = {tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,Qdotsj,vAk,dFTtildej,Aj,M_ort_coordk,M_ort_bodyk,FPedalk,FPedalj};
 if nq.torqAct > 0
     coll_input_vars_def = [coll_input_vars_def,{a_ak,a_aj,e_ak}];
@@ -643,12 +673,12 @@ end
 
 f_coll = Function('f_coll',coll_input_vars_def,...
         {eq_constr, ineq_constr_deact, ineq_constr_act,...
-        ineq_constr_distance{:}, ineq_constr_syn,J, crank_omega, M_crank});
+        ineq_constr_distance{:}, ineq_constr_syn,J, omega_crank, M_crank});
 
 % Repeat function for each mesh interval and assign evaluation to multiple threads
 f_coll_map = f_coll.map(N,S.solver.parallel_mode,S.solver.N_threads);
 
-% evaluate function with opti variables
+% evaluate function with opti variables, alpha_crank(:, 1:end-1), alpha_crank_col
 coll_input_vars_eval = {tf,a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col,...
     Qs(:,1:end-1), Qs_col, Qdots(:,1:end-1), Qdots_col, vA, dFTtilde_col, A_col,...
      M_ort_coord_opti, M_ort_body_opti, FPedal(:,1:end-1), FPedal_col};
@@ -663,7 +693,7 @@ coll_ineq_constr_distance = cell(1,length(ineq_constr_distance));
 
 [coll_eq_constr, coll_ineq_constr_deact, coll_ineq_constr_act,...
     coll_ineq_constr_distance{:}, coll_ineq_constr_syn,Jall, ...
-    crank_omega, M_crank] =...
+    omega_crank, M_crank] =...
     f_coll_map(coll_input_vars_eval{:});
 
 % equality constraints
@@ -693,8 +723,6 @@ end
 if (S.subject.synergies)
     opti.subject_to(S.bounds.SynConstr.lower < coll_ineq_constr_syn(:) < S.bounds.SynConstr.upper); 
 end
-
-% opti.subject_to(crank_omega(:) <= S.cycling.min_crank_omega);
 
 % Loop over mesh points
 for k=1:N
@@ -748,6 +776,8 @@ if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')
         opti.subject_to(SynH_r(:,end) - SynH_l(:,1) == 0);
         opti.subject_to(SynH_l(:,end) - SynH_r(:,1) == 0);
     end
+    % Pedal forces
+    opti.subject_to(FPedal([1 2 3 4 5 6], end) - FPedal([4 5 6 1 2 3], 1) == 0);
 else
     opti.subject_to(Qs(model_info.ExtFunIO.symQs.QsFullGC,end) - Qs(model_info.ExtFunIO.symQs.QsFullGC,1) == 0);
     opti.subject_to(Qdots(:,end) - Qdots(:,1) == 0);
@@ -763,15 +793,22 @@ else
         opti.subject_to(SynH_r(:,end) - SynH_r(:,1) == 0);
         opti.subject_to(SynH_l(:,end) - SynH_l(:,1) == 0);
     end
-
+    % Pedal forces
+    opti.subject_to(FPedal(:, end) - FPedal(:, 1) == 0);
 end
 % Average cycling frequency and power output
-target_angVel = (-2*pi*S.cycling.rpm)/60;
-avg_omega = mean(crank_omega, 2);
-opti.subject_to(target_angVel - avg_omega == 0);
-
-avg_torque = mean(M_crank, 2);
-opti.subject_to((crank_omega * avg_torque(3)) / S.cycling.power == 1);
+omega_target = (-2*pi*S.cycling.rpm)/60;
+omega_avg = mean(omega_crank, 2);
+% opti.subject_to(omega_target - omega_crank == 0);
+opti.subject_to(omega_target - omega_avg == 0);
+if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')
+    opti.subject_to((-omega_avg*tf) - pi == 0);
+else
+    opti.subject_to((-omega_avg*tf) - (2*pi) == 0);
+end
+% M_avg = mean(M_crank, 2);
+% opti.subject_to((omega_avg * M_avg) / S.cycling.power == 1);
+opti.subject_to(mean(omega_crank .* M_crank(3, :)) / S.cycling.power == 1);
 
 % Qs_nsc = Qs.*(scaling.Qs'*ones(1,N+1));
 % dist_trav_tot = Qs_nsc(model_info.ExtFunIO.jointi.base_forward,end) - ...
@@ -816,7 +853,9 @@ end
 
 % Scale cost function
 Jall_sc = sum(Jall); %/dist_trav_tot;
+% Jall_sc = Jall_sc + 1e4 * (mean(omega_crank .* M_crank(3,:)) - S.cycling.power)^2;
 opti.minimize(Jall_sc);
+% 1e4 * (omega_target - omega_avg)^2 + 1e4 * 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(' ')
@@ -824,7 +863,7 @@ disp(['...OCP formulation done. Time elapsed ' num2str(toc(t0),'%.2f') ' s'])
 disp(' ')
 
 %%
-
+init_guess = opti.value(opti.f, opti.initial);
 if ~S.post_process.load_prev_opti_vars
     % Create NLP solver
     options = S.solver.nlpsol_options;

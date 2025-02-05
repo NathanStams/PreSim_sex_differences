@@ -62,8 +62,8 @@ R.pedal_reaction.cop_l = Foutk_opt(:, model_info.ExtFunIO.position.pedal_l);
 
 % Calculate crank torque
 R.pedal_reaction.crank_tau = cross(R.pedal_reaction.cop_r, ... 
-   R.pedal_reaction.force_r) + cross(R.pedal_reaction.cop_l, ... 
-   R.pedal_reaction.force_l);
+   -R.pedal_reaction.force_r) + cross(R.pedal_reaction.cop_l, ... 
+   -R.pedal_reaction.force_l);
 
 % Calculate crank angular velocity
 R.pedal_reaction.cop_vel_r = Foutk_opt(:, model_info.ExtFunIO.velocity.pedal_r);
@@ -75,9 +75,34 @@ for i = 1:N
     R.pedal_reaction.omega_l(i, :) = cross(R.pedal_reaction.cop_l(i, :), R.pedal_reaction.cop_vel_l(i, :)) / ...
         norm(R.pedal_reaction.cop_l(i, :))^2;    
 end
-R.pedal_reaction.omega = mean([R.pedal_reaction.omega_r(:, 3) R.pedal_reaction.omega_l(:, 3)], 2);
+R.pedal_reaction.Crank_velocity = mean([R.pedal_reaction.omega_r(:, 3) R.pedal_reaction.omega_l(:, 3)], 2);
 
 % Calculate crank power
-R.pedal_reaction.power = R.pedal_reaction.crank_tau(:, 3) .* R.pedal_reaction.omega;
+R.pedal_reaction.Crank_Power_total = R.pedal_reaction.crank_tau(:, 3) .* R.pedal_reaction.Crank_velocity;
+
+% Calculate normal and tangential pedal forces
+r_normal_hat = R.pedal_reaction.cop_r(:,1:2) ./ vecnorm(R.pedal_reaction.cop_r(:,1:2), 2, 2);
+tmp_r = cross([zeros(size(R.pedal_reaction.Crank_velocity, 1),2) R.pedal_reaction.Crank_velocity], ...
+    [R.pedal_reaction.cop_r(:,1:2) zeros(size(R.pedal_reaction.cop_r,1),1)], 2);
+r_tangent_hat = tmp_r(:, 1:2) ./ vecnorm(tmp_r(:, 1:2), 2, 2);
+
+l_normal_hat = R.pedal_reaction.cop_l(:,1:2) ./ vecnorm(R.pedal_reaction.cop_l(:,1:2), 2, 2);
+tmp_l = cross([zeros(size(R.pedal_reaction.Crank_velocity, 1),2) R.pedal_reaction.Crank_velocity], ...
+    [R.pedal_reaction.cop_l(:,1:2) zeros(size(R.pedal_reaction.cop_l,1),1)], 2);
+l_tangent_hat = tmp_l(:, 1:2) ./ vecnorm(tmp_l(:, 1:2), 2, 2);
+
+for i = 1:size(R.pedal_reaction.force_r, 1)
+    R_r = [r_tangent_hat(i, :)' r_normal_hat(i, :)'];
+    R_l = [l_tangent_hat(i, :)' l_normal_hat(i, :)'];
+
+    F_r(i, :) = (R_r' * -R.pedal_reaction.force_r(i, 1:2)')';
+    F_l(i, :) = (R_l' * -R.pedal_reaction.force_l(i, 1:2)')';
+end
+
+R.pedal_reaction.R_force_tangential = F_r(:, 1);
+R.pedal_reaction.R_force_normal = F_r(:, 2);
+
+R.pedal_reaction.L_force_tangential = F_l(:, 1);
+R.pedal_reaction.L_force_normal = F_l(:, 2);
 
 end

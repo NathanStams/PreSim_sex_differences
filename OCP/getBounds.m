@@ -125,7 +125,8 @@ end
 if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')
     bounds_nsc.Qs.upper(model_info.ExtFunIO.jointi.base_forward) = ...
         bounds_nsc.Qs.upper(model_info.ExtFunIO.jointi.base_forward)/2;
-
+    
+    S.bounds.t_final.lower = S.bounds.t_final.lower/2;
     S.bounds.t_final.upper = S.bounds.t_final.upper/2;
 end
 
@@ -198,6 +199,9 @@ if strcmp(S.misc.task, 'cycling')
         numel(model_info.ExtFunIO.input.Forces.pedal_force_l);
     bounds_nsc.FPedal.lower = ones(1, n_forces) * S.bounds.FPedal.lower;
     bounds_nsc.FPedal.upper = ones(1, n_forces) * S.bounds.FPedal.upper;
+    
+    bounds_nsc.alpha_crank.lower = S.bounds.alpha_crank.lower;
+    bounds_nsc.alpha_crank.upper = S.bounds.alpha_crank.upper;
 end
 
 end % end of function

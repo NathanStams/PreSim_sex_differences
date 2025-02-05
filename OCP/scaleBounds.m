@@ -48,6 +48,8 @@ bounds_nsc.FTtilde.upper    = (bounds_nsc.FTtilde.upper)./scaling.FTtilde;
 if strcmp(S.misc.task, 'cycling')
     bounds.FPedal.lower = (bounds_nsc.FPedal.lower)./scaling.FPedal;
     bounds.FPedal.upper = (bounds_nsc.FPedal.upper)./scaling.FPedal;
+    bounds.alpha_crank.lower = (bounds_nsc.alpha_crank.lower)./scaling.alpha_crank;
+    bounds.alpha_crank.upper = (bounds_nsc.alpha_crank.upper)./scaling.alpha_crank;
 end
 
 % We impose the initial position of pelvis_tx to be 0

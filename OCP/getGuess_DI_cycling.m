@@ -113,6 +113,7 @@ guess.e_a = 0.1*ones(N,nq.torqAct);
 n_FPedal = numel(model_info.ExtFunIO.input.Forces.pedal_force_r) + ...
     numel(model_info.ExtFunIO.input.Forces.pedal_force_l);
 guess.FPedal = zeros(N, n_FPedal);
+guess.alpha_crank = zeros(N, 1);
 
 %% Add last mesh point to state variables
 if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')
@@ -137,6 +138,7 @@ if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')
     guess.FTtilde = [guess.FTtilde; guess.FTtilde(1,model_info.ExtFunIO.symQs.MusInvB)];
     guess.a_a = [guess.a_a; guess.a_a(1,:)];
     guess.FPedal = [guess.FPedal; guess.FPedal(1,:)];
+    guess.alpha_crank = [guess.alpha_crank; guess.alpha_crank(1, 1)];
 else
     guess.Qs = [guess.Qs; guess.Qs(1,:)];
     guess.Qdots = [guess.Qdots; guess.Qdots(1,:)];
@@ -144,6 +146,7 @@ else
     guess.FTtilde = [guess.FTtilde; guess.FTtilde(1,:)];
     guess.a_a = [guess.a_a; guess.a_a(1,:)];
     guess.FPedal = [guess.FPedal; guess.FPedal(1,:)];
+    guess.alpha_crank = [guess.alpha_crank; guess.alpha_crank(1, 1)];
 end
 
 %% Final time
@@ -166,7 +169,7 @@ guess.vA        = (guess.vA)./repmat(scaling.vA,N,size(guess.vA,2));
 guess.dFTtilde  = (guess.dFTtilde)./repmat(scaling.dFTtilde,N,...
     size(guess.dFTtilde,2));
 guess.FPedal    = (guess.FPedal)./repmat(scaling.FPedal, N+1, size(guess.FPedal, 2));
-
+guess.alpha_crank    = (guess.alpha_crank)./scaling.alpha_crank;
 
 %% Collocation points
 guess.a_col = zeros(d*N,NMuscle*NFibre);
@@ -177,6 +180,7 @@ guess.a_a_col = zeros(d*N,nq.torqAct);
 guess.dFTtilde_col = zeros(d*N,NMuscle);
 guess.Qdotdots_col = zeros(d*N,nq.all);
 guess.FPedal_col = zeros(d*N,n_FPedal);
+guess.alpha_crank_col = zeros(d*N,1);
 for k=1:N
     guess.a_col((k-1)*d+1:k*d,:) = repmat(guess.a(k,:),d,1); 
     guess.FTtilde_col((k-1)*d+1:k*d,:) = repmat(guess.FTtilde(k,:),d,1);
@@ -185,6 +189,6 @@ for k=1:N
     guess.a_a_col((k-1)*d+1:k*d,:) = repmat(guess.a_a(k,:),d,1);
     guess.dFTtilde_col((k-1)*d+1:k*d,:) = repmat(guess.dFTtilde(k,:),d,1);
     guess.Qdotdots_col((k-1)*d+1:k*d,:) = repmat(guess.Qdotdots(k,:),d,1);
-    guess.FPedal_col((k-1)*d+1:k*d,:) = repmat(guess.FPedal(k,:),d,1);
+    guess.alpha_crank_col((k-1)*d+1:k*d,:) = repmat(guess.alpha_crank_col(k,:),d,1);
 end
 end

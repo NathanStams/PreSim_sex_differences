@@ -133,6 +133,18 @@ sigma_data.iliopsoas_l = 1.5041;
 sigma_data.vasti_l = 0.55263;
 sigma_data.gastroc_l = 0.69865;
 
+%% LaiArnold muscles (not present in previous lists)
+% Right muscle groups
+sigma_data.addmagDist_r = 0.55217;
+sigma_data.addmagIsch_r = 0.55323;
+sigma_data.addmagMid_r = 0.54831;
+sigma_data.addmagProx_r = 0.54831;
+
+sigma_data.addmagDist_l = 0.55217;
+sigma_data.addmagIsch_l = 0.55323;
+sigma_data.addmagMid_l = 0.54831;
+sigma_data.addmagProx_l = 0.54831;
+
 %%
 specific_tension = zeros(length(muscleNames),1);
 for i = 1:length(muscleNames)

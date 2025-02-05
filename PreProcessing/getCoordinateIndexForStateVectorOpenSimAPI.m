@@ -38,7 +38,7 @@ model = Model(osim_path);
 state = model.initSystem;
 % Get state vector
 state_vars = model.getStateVariableValues(state);
-for i=1:n_coord
+for i=1:model.getCoordinateSet().getSize()
     state_vars.set((i-1)*2,(i-1)*2);
 end
 model.setStateVariableValues(state,state_vars);

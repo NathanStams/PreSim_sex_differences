@@ -132,6 +132,18 @@ pctst_data.iliopsoas_l = 0.50;
 pctst_data.vasti_l = 0.543;
 pctst_data.gastroc_l = 0.566;
 
+%% LaiArnold muscles (not present in previous lists)
+% Right muscle groups
+pctst_data.addmagDist_r = 0.552;
+pctst_data.addmagIsch_r = 0.552;
+pctst_data.addmagMid_r = 0.552;
+pctst_data.addmagProx_r = 0.552;
+
+pctst_data.addmagDist_l = 0.552;
+pctst_data.addmagIsch_l = 0.552;
+pctst_data.addmagMid_l = 0.552;
+pctst_data.addmagProx_l = 0.552;
+
 %%
 slow_twitch_fiber_ratio = zeros(length(muscleNames),1);
 for i = 1:length(muscleNames)
