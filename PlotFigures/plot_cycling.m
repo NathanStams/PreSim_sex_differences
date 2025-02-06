@@ -13,14 +13,15 @@ load(sim_path, 'R');
 % Plot Qs
 figure('Name','Qs');
 tiledlayout();
-t = 1:100;
+t = 0:100;
+t_sim = linspace(0, 100, size(R.kinematics.Qs, 1));
 coords = R.colheaders.coordinates;
 for i = 1:length(coords)
     nexttile;
     
     % Get experimental mean and sd
-    Y = ref.Qs.(coords{i}).female_avg(2:end);
-    SD = ref.Qs.(coords{i}).female_sd(2:end);
+    Y = ref.Qs.(coords{i}).female_avg;
+    SD = ref.Qs.(coords{i}).female_sd;
 
     if contains(coords(i), {'knee'})
         Y = Y * -1;
@@ -37,7 +38,7 @@ for i = 1:length(coords)
 
     % Plot simulation
     idx = strcmp(coords, coords{i});
-    plot(t, R.kinematics.Qs(:, idx), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
+    plot(t_sim, R.kinematics.Qs(:, idx), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
 
     % Annotate
     title(replace(coords{i}, '_', ' '));
@@ -47,14 +48,14 @@ end
 % Plot pedal parameters
 figure('Name','Pedal params');
 tiledlayout();
-t = 1:100;
+t = 0:100;
 vars = intersect(fieldnames(R.pedal_reaction), fieldnames(ref.pedals));
 for i = 1:length(vars)
     nexttile;
     
     % Get experimental mean and sd
-    Y = ref.pedals.(vars{i}).female_avg(2:end);
-    SD = ref.pedals.(vars{i}).female_sd(2:end);
+    Y = ref.pedals.(vars{i}).female_avg;
+    SD = ref.pedals.(vars{i}).female_sd;
     
     if contains(vars(i), {'velocity'})
         Y = Y * -1;
@@ -70,7 +71,7 @@ for i = 1:length(vars)
     plot(t, Y, 'LineStyle', '-', 'Color', [0 0 0 0.5], 'LineWidth', 0.5);
 
     % Plot simulation
-    plot(t, R.pedal_reaction.(vars{i}), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
+    plot(t_sim, R.pedal_reaction.(vars{i}), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
 
     % Annotate
     title(replace(vars{i}, '_', ' '));

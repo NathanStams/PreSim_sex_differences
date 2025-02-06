@@ -102,22 +102,49 @@ S.misc.threshold_dM_fit = 0.01;
 S.misc.poly_order.upper = 5;
 S.misc.poly_order.lower = 3;
 
-
+S.solver.run_as_batch_job = true;
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job
-    % fibre_type_shift = fliplr(linspace(0.1, 1, 6));
-    % n_meshes = [40 50 60 75 100 125];
-    % speeds = [0.83 1.33 1.83 2.33 2.58];
-    tacts = [0.005 0.015; 0.015 0.025; 0.025 0.035; 0.025 0.045; 0.035 0.055; 0.045 0.065];
-    for i = 1:size(tacts, 1)
+    % Parameters
+    t_stiff = [0.25, 0.5, 0.75, 1.0, 1.25];
+    m_stiff = [0.7, 0.8, 0.9, 1.0, 1.1];
+    m_shift = [0.9, 1.0, 1.10, 1.20 1.30];
+    wE = [400, 450, 500, 550, 600];
+    wa = [1600, 1800, 2000, 2200, 2400];
 
-        % S.misc.forward_velocity = speeds(i);
-        % S.solver.N_meshes = n_meshes(i);
-        % S.param_shift.slow_to_fast = fibre_type_shift(i);
-        % S.param_shift.fast_to_slow = fibre_type_shift(i);
-        S.multifibre.tact_range = tacts(i, :);
+    % Achilles tendon stiffness scale
+    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'atStiffnessScale');
+    for i = 1:size(t_stiff, 1)
+        S.subject.tendon_stiff_scale = {{'soleus','lat_gas', 'med_gas'},t_stiff(i)};
+        [savename] = runPredSim(S, osim_path);
+    end
+    
+    % Muscle passive stiffness scale
+    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessScale');
+    for i = 1:size(m_stiff, 1)
+        S.subject.muscle_pass_stiff_scale = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_stiff(i)};
+        [savename] = runPredSim(S, osim_path);
+    end
 
+    % Muscle passive stiffness shift
+    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessShift');
+    for i = 1:size(m_shift, 1)
+        muscle_pass_stiff_shift = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_shift(i)};
+        [savename] = runPredSim(S, osim_path);
+    end
+
+    % Weight E
+    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'weightsE');
+    for i = 1:size(wE, 1)
+        S.weights.E = wE(i);
+        [savename] = runPredSim(S, osim_path);
+    end
+
+    % Weight a
+    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'weightsa');
+    for i = 1:size(wa, 1)
+        S.weights.a = wa(i);
         [savename] = runPredSim(S, osim_path);
     end
 else
@@ -139,19 +166,31 @@ if ~S.solver.run_as_batch_job
         'C:\Users\nml-p\Documents\Projects\PredictiveCycling\ReferenceData\Dick_et_al_2016\PredSimReference\ReferenceData_80rpm_200w.mat';
 
     % Cell array with legend name for each result
-    % legend_names = {'single fibre'};
+    legend_names = {'single fibre'};
 
     % add path to subfolder with plotting functions
     addpath(fullfile(pathRepo,'PlotFigures'))
 
-    % figure_settings(1).name = 'Qs';
-    % figure_settings(1).dofs = {'all_coords'};
-    % figure_settings(1).variables = {'Qs'};
-    % figure_settings(1).savepath = [];
-    % figure_settings(1).filetype = {};
+    figure_settings(1).name = 'lMtilde';
+    figure_settings(1).dofs = {'muscles_r'};
+    figure_settings(1).variables = {'lMtilde'};
+    figure_settings(1).savepath = [];
+    figure_settings(1).filetype = {};
+
+    figure_settings(2).name = 'FT';
+    figure_settings(2).dofs = {'muscles_r'};
+    figure_settings(2).variables = {'FT'};
+    figure_settings(2).savepath = [];
+    figure_settings(2).filetype = {};
+
+    figure_settings(3).name = 'Fpass';
+    figure_settings(3).dofs = {'muscles_r'};
+    figure_settings(3).variables = {'Fpass'};
+    figure_settings(3).savepath = [];
+    figure_settings(3).filetype = {};
 
     % % call plotting function
-    % plot_figures(result_paths, legend_names, figure_settings);
+    plot_figures(result_paths, legend_names, figure_settings);
     plot_cycling(result_paths{1}, reference_path);
 
 end
