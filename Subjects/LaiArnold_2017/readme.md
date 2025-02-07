@@ -1,0 +1,1 @@
+Lower-body model adapted for cycling. Please cite Lai, A.K.M., Arnold, A.S. & Wakeling, J.M. Why are Antagonist Muscles Co-activated in My Simulation? A Musculoskeletal Model for Analysing Human Locomotor Tasks. Ann Biomed Eng 45, 2762–2774 (2017). https://doi.org/10.1007/s10439-017-1920-7 when using this model.
