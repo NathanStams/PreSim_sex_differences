@@ -37,6 +37,12 @@ NMuscle = model_info.muscle_info.NMuscle;
 NFibre = S.multifibre.NFibre;
 coordi = model_info.ExtFunIO.coordi;
 
+%% Load guess
+% We load the data informed guess as in getGuess_DI_cycling.m. The
+% quasi-random guess is set such that the model remains stationary in the
+% position from the first frame of the data informed guess.
+Qs_guess = getIK(fullfile(S.misc.main_path,'OCP','IK_Guess_Full_cycling_Lai.mot'),model_info);
+
 %% Final time
 % The final time is function of the imposed cycling frequency (given in
 % rounds per minute). As we want the final time to be in seconds, we divide
@@ -49,7 +55,7 @@ end
 
 %% Qs
 % The model is moving forward but with a standing position (Qs=0)
-guess.Qs = zeros(N,nq.all);
+guess.Qs = ones(N,nq.all) .* Qs_guess.all(1, 2:end);
 
 %% Qdots
 guess.Qdots = zeros(N,nq.all);

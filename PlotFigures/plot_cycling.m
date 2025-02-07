@@ -1,82 +1,87 @@
-function plot_cycling(sim_path, varargin)
+function plot_cycling(sim_paths, ref_path, legend_names, varargin)
 
-% Parse varargin
-if nargin > 1
-    ref_path = varargin{:};
-    load(ref_path, 'R');
-    ref = R;
+if nargin > 3
+    save_path = varargin{4};
+    file_type = varargin{5};
 end
 
-% Load simulaton data
-load(sim_path, 'R');
+% Load reference data
+load(ref_path, 'R');
+ref = R;
 
-% Plot Qs
-figure('Name','Qs');
-tiledlayout();
-t = 0:100;
+% Load first simulation data
+load(sim_paths{1}, 'R');
+
+% Define reference and simulation parameters
+variables = {'Qs', 'pedals'};
+cmap = hsv(length(sim_paths));
+t_ref = 0:100;
 t_sim = linspace(0, 100, size(R.kinematics.Qs, 1));
-coords = R.colheaders.coordinates;
-for i = 1:length(coords)
-    nexttile;
-    
-    % Get experimental mean and sd
-    Y = ref.Qs.(coords{i}).female_avg;
-    SD = ref.Qs.(coords{i}).female_sd;
 
-    if contains(coords(i), {'knee'})
-        Y = Y * -1;
+% Plot reference data
+for c = variables
+    if strcmp(c, 'Qs')
+        dofs = R.colheaders.coordinates;
+    else
+        dofs = intersect(fieldnames(R.pedal_reaction), fieldnames(ref.pedals));
     end
 
-    % Use fill function to draw
-    x_long = [t fliplr(t)];
-    y_long = [(Y - SD)' flipud(Y + SD)'];
-    fill(x_long, y_long, 'k', 'FaceAlpha', 0.2, 'EdgeColor', 'none');
-    hold on;
+    fig = figure('Name',c{:});
+    tiledlayout();
 
-    % Plot average 
-    plot(t, Y, 'LineStyle', '-', 'Color', [0 0 0 0.5], 'LineWidth', 0.5);
+    for i = 1:length(dofs)
+        nexttile;
 
-    % Plot simulation
-    idx = strcmp(coords, coords{i});
-    plot(t_sim, R.kinematics.Qs(:, idx), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
+        % Get experimental mean and sd
+        Y = ref.(c{:}).(dofs{i}).female_avg;
+        SD = ref.(c{:}).(dofs{i}).female_sd;
 
-    % Annotate
-    title(replace(coords{i}, '_', ' '));
-    xlabel('Cycle (%)');
-end
+        if contains(dofs(i), {'knee', 'velocity'})
+            Y = Y * -1;
+        end
 
-% Plot pedal parameters
-figure('Name','Pedal params');
-tiledlayout();
-t = 0:100;
-vars = intersect(fieldnames(R.pedal_reaction), fieldnames(ref.pedals));
-for i = 1:length(vars)
-    nexttile;
-    
-    % Get experimental mean and sd
-    Y = ref.pedals.(vars{i}).female_avg;
-    SD = ref.pedals.(vars{i}).female_sd;
-    
-    if contains(vars(i), {'velocity'})
-        Y = Y * -1;
+        % Use fill function to draw
+        x_long = [t_ref fliplr(t_ref)];
+        y_long = [(Y - SD)' flipud(Y + SD)'];
+        fill(x_long, y_long, 'k', 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+        hold on;
+
+        % Plot average
+        plot(t_ref, Y, 'LineStyle', '-', 'Color', [0 0 0 0.5], 'LineWidth', 0.5);
+
+        % Annotate
+        title(replace(dofs{i}, '_', ' '));
+        xlabel('Cycle (%)');
     end
 
-    % Use fill function to draw
-    x_long = [t fliplr(t)];
-    y_long = [(Y - SD)' flipud(Y + SD)'];
-    fill(x_long, y_long, 'k', 'FaceAlpha', 0.2, 'EdgeColor', 'none');
-    hold on;
+    % Plot simulation data on top
+    for i = 1:length(sim_paths)
+        % Load correct simulation data
+        if ~(i == 1)
+            load(sim_paths{i}, 'R');
+        end
 
-    % Plot average 
-    plot(t, Y, 'LineStyle', '-', 'Color', [0 0 0 0.5], 'LineWidth', 0.5);
+        for j = 1:length(dofs)
+            nexttile(j);
+            % Plot simulation
+            idx = strcmp(dofs, dofs{j});
+            if strcmp(c, 'Qs')
+                plot(t_sim, R.kinematics.Qs(:, idx), 'LineStyle', '-', 'Color', cmap(i, :), 'LineWidth', 1);
+            else
+                plot(t_sim, R.pedal_reaction.(dofs{j}), 'LineStyle', '-', 'Color', cmap(i, :), 'LineWidth', 1);
+            end
+            
+        end
+        lns = get(gca, 'Children');
+        p(i) = lns(1);
+    end
+    leg = legend(p(:), legend_names, 'Orientation', 'Horizontal');
+    leg.Layout.Tile = 'south';
 
-    % Plot simulation
-    plot(t_sim, R.pedal_reaction.(vars{i}), 'LineStyle', '-', 'Color', 'r', 'LineWidth', 1);
-
-    % Annotate
-    title(replace(vars{i}, '_', ' '));
-    xlabel('Cycle (%)');
+    % Save plot
+    if exist('save_path', 'var')
+        exportgraphics(fig, fullfile(save_path, [c{:} '.' file_type]));
+        close(fig);
+    end
 end
-
-
 end

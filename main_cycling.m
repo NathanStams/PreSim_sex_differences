@@ -15,12 +15,12 @@ clc
 %% Initialize S
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
-[S] = initializeSettings('LaiArnold2D');
+[S] = initializeSettings('LaiArnold_TwistLimit');
 
 %% Settings
 
 % name of the subject
-S.subject.name = 'LaiArnold2D';
+S.subject.name = 'LaiArnold_TwistLimit';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name '_multifibre'],'tact_sensitivity');
@@ -96,57 +96,31 @@ S.cycling.I_eff = 3.456 * 1e-3 + 10.442 * gear_ratio^2;
 % S.post_process.rerun = true;
 % S.misc.result_filename = 'gait1018_cycling_v78';
 
-S.misc.msk_geom_n_samples = 2500;
-S.misc.threshold_lMT_fit = 0.01;
-S.misc.threshold_dM_fit = 0.01;
-S.misc.poly_order.upper = 5;
-S.misc.poly_order.lower = 3;
+% S.misc.msk_geom_n_samples = 2500;
+% S.misc.threshold_lMT_fit = 0.01;
+% S.misc.threshold_dM_fit = 0.01;
+% S.misc.poly_order.upper = 5;
+% S.misc.poly_order.lower = 3;
 
-S.solver.run_as_batch_job = true;
+S.solver.run_as_batch_job = false;
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job
-    % Parameters
-    t_stiff = [0.25, 0.5, 0.75, 1.0, 1.25];
-    m_stiff = [0.7, 0.8, 0.9, 1.0, 1.1];
-    m_shift = [0.9, 1.0, 1.10, 1.20 1.30];
-    wE = [400, 450, 500, 550, 600];
-    wa = [1600, 1800, 2000, 2200, 2400];
+    
+    if strcmp(S.subject.name, 'LaiArnold2D')
+        % Parameters
+        m_shift = [0.9, 1.0, 1.10, 1.20 1.30];
 
-    % Achilles tendon stiffness scale
-    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'atStiffnessScale');
-    for i = 1:size(t_stiff, 1)
-        S.subject.tendon_stiff_scale = {{'soleus','lat_gas', 'med_gas'},t_stiff(i)};
+        % Muscle passive stiffness shift
+        S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessShift');
+        for i = 1:size(m_shift, 1)
+            S.subject.muscle_pass_stiff_shift = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_shift(i)};
+            [savename] = runPredSim(S, osim_path);
+        end
+    else
         [savename] = runPredSim(S, osim_path);
     end
     
-    % Muscle passive stiffness scale
-    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessScale');
-    for i = 1:size(m_stiff, 1)
-        S.subject.muscle_pass_stiff_scale = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_stiff(i)};
-        [savename] = runPredSim(S, osim_path);
-    end
-
-    % Muscle passive stiffness shift
-    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessShift');
-    for i = 1:size(m_shift, 1)
-        muscle_pass_stiff_shift = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_shift(i)};
-        [savename] = runPredSim(S, osim_path);
-    end
-
-    % Weight E
-    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'weightsE');
-    for i = 1:size(wE, 1)
-        S.weights.E = wE(i);
-        [savename] = runPredSim(S, osim_path);
-    end
-
-    % Weight a
-    S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'weightsa');
-    for i = 1:size(wa, 1)
-        S.weights.a = wa(i);
-        [savename] = runPredSim(S, osim_path);
-    end
 else
     [savename] = runPredSim(S, osim_path);
 end
@@ -191,6 +165,6 @@ if ~S.solver.run_as_batch_job
 
     % % call plotting function
     plot_figures(result_paths, legend_names, figure_settings);
-    plot_cycling(result_paths{1}, reference_path);
+    plot_cycling(result_paths, reference_path, legend_names);
 
 end
