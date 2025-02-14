@@ -1,8 +1,8 @@
 function plot_cycling(sim_paths, ref_path, legend_names, varargin)
 
 if nargin > 3
-    save_path = varargin{4};
-    file_type = varargin{5};
+    save_path = varargin{1};
+    file_type = varargin{2};
 end
 
 % Load reference data
@@ -21,7 +21,7 @@ t_sim = linspace(0, 100, size(R.kinematics.Qs, 1));
 % Plot reference data
 for c = variables
     if strcmp(c, 'Qs')
-        dofs = R.colheaders.coordinates;
+        dofs = intersect(R.colheaders.coordinates, fieldnames(ref.Qs));
     else
         dofs = intersect(fieldnames(R.pedal_reaction), fieldnames(ref.pedals));
     end
@@ -64,7 +64,7 @@ for c = variables
         for j = 1:length(dofs)
             nexttile(j);
             % Plot simulation
-            idx = strcmp(dofs, dofs{j});
+            idx = strcmp(R.colheaders.coordinates, dofs{j});
             if strcmp(c, 'Qs')
                 plot(t_sim, R.kinematics.Qs(:, idx), 'LineStyle', '-', 'Color', cmap(i, :), 'LineWidth', 1);
             else

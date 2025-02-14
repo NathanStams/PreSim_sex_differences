@@ -15,12 +15,12 @@ clc
 %% Initialize S
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
-[S] = initializeSettings('LaiArnold_TwistLimit');
+[S] = initializeSettings('LaiArnold2D_torso');
 
 %% Settings
 
 % name of the subject
-S.subject.name = 'LaiArnold_TwistLimit';
+S.subject.name = 'LaiArnold2D_torso';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name '_multifibre'],'tact_sensitivity');
@@ -56,7 +56,7 @@ S.solver.N_threads = 6;
 S.misc.gaitmotion_type = 'HalfGaitCycle'; % FullGaitCycle
 
 % Visualize bounds
-% S.misc.visualize_bounds = true;
+S.misc.visualize_bounds = false;
 
 % give the path to the osim model of your subject
 osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']);
@@ -101,8 +101,6 @@ S.cycling.I_eff = 3.456 * 1e-3 + 10.442 * gear_ratio^2;
 % S.misc.threshold_dM_fit = 0.01;
 % S.misc.poly_order.upper = 5;
 % S.misc.poly_order.lower = 3;
-
-S.solver.run_as_batch_job = false;
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job
