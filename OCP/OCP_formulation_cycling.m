@@ -539,7 +539,7 @@ for j=1:d
     % TODO: ENFORCE DYNAMICS BETTER
 
     % Add pedaling smoothness as cost
-    % J = J + B(j+1) * ((-2*pi*S.cycling.rpm)/60 - omega_crank)^2 * h;
+    J = J + W.smooth * B(j+1) * ((-2*pi*S.cycling.rpm)/60 - omega_crank)^2 * h;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Add path constraints

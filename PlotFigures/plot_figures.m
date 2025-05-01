@@ -28,7 +28,7 @@ function [] = plot_figures(result_paths,legend_names,figure_settings)
 % --------------------------------------------------------------------------
 
 % generate colours, in this case a rainbow
-colors = hsv(length(result_paths));
+colors = parula(length(result_paths));
 
 % pre-allocate figures to simplify code below
 for j=1:length(figure_settings)

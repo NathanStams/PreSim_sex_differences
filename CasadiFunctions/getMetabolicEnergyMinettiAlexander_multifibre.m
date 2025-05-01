@@ -33,7 +33,7 @@ for i = 1:n_fibre
     phi = (c1 + c2 .* (vMtilde) + c3 .* (vMtilde.^2))./ ... 
       (1 - c4 .* (vMtilde) + c5 .* ((vMtilde).^2) - c6.*((vMtilde).^3)); 
 
-    Edot = Edot + a(:, i) .* per_fibre(:, i) .* vMmax(:, i) .* phi .* smeta(:, i);
+    Edot = Edot + a(:, i) .* per_fibre(:, i) .* vMmax(:, i) .* phi .* smeta_sep(:, i);
 end
 Edot = Edot .* FMo;
 end

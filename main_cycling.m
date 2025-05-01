@@ -63,7 +63,7 @@ osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']
 
 % Run simulations as batch jobs, such that multiple simulations can run at
 % the same time.
-S.solver.run_as_batch_job = false;
+S.solver.run_as_batch_job = true;
 
 S.misc.task = 'cycling';
 % S.misc.forward_velocity = 4.5;
@@ -105,18 +105,13 @@ S.cycling.I_eff = 3.456 * 1e-3 + 10.442 * gear_ratio^2;
 %% Run predictive simulations
 if S.solver.run_as_batch_job
     
-    if strcmp(S.subject.name, 'LaiArnold2D')
-        % Parameters
-        m_shift = [0.9, 1.0, 1.10, 1.20 1.30];
+    smooth = [1 100 500 1000];
 
-        % Muscle passive stiffness shift
-        S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'quadStiffnessShift');
-        for i = 1:size(m_shift, 1)
-            S.subject.muscle_pass_stiff_shift = {{'rect_fem','vas_lat', 'vas_med', 'vas_int'},m_shift(i)};
-            [savename] = runPredSim(S, osim_path);
-        end
-    else
+    for i = 1:length(smooth)
+    
+        S.weights.smooth = smooth(i);
         [savename] = runPredSim(S, osim_path);
+    
     end
     
 else

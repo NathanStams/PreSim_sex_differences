@@ -60,6 +60,10 @@ if S.multifibre.use_multifibre_muscles
     vMmax = repmat(linspace(S.multifibre.vMmax_range(1), S.multifibre.vMmax_range(end), NFibre)', 1, NMuscle) .* lMo;
 end
 
+if isfield(S.misc, 'custom_vMmax')
+    vMmax = ones(size(vMmax)) .* S.misc.custom_vMmax .* lMo;
+end
+
 %% parameters not from osim file
 % default tendon stiffness
 tendon_stiff = 35*ones(1,NMuscle);
@@ -73,7 +77,7 @@ if isfield(S, 'param_shift')
     if isfield(S.param_shift, 'slow_to_fast') && ~isempty(S.param_shift.slow_to_fast)
         slow_twitch_fiber_ratio = slow_twitch_fiber_ratio.* S.param_shift.slow_to_fast;
     elseif isfield(S.param_shift, 'fast_to_slow') && ~isempty(S.param_shift.fast_to_slow)
-        slow_twitch_fiber_ratio = fliplr(1 - (1 - slow_twitch_fiber_ratio).* S.param_shift.fast_to_slow);
+        slow_twitch_fiber_ratio = 1 - (1 - slow_twitch_fiber_ratio).* S.param_shift.fast_to_slow;
     end
 end
 
@@ -142,6 +146,9 @@ model_info.muscle_info = muscle_info;
 if S.multifibre.use_multifibre_muscles
     model_info.muscle_info.tact = fliplr(linspace(S.multifibre.tact_range(1), S.multifibre.tact_range(end), NFibre)); % activation - slow to fast
     model_info.muscle_info.tdeact = model_info.muscle_info.tact ./ S.multifibre.beta; % deactivation - slow to fast
+elseif isfield(S.misc, 'custom_tact')
+    model_info.muscle_info.tact = S.misc.custom_tact; % activation
+    model_info.muscle_info.tdeact = S.misc.custom_tact ./ 0.6; % deactivation
 else
     model_info.muscle_info.tact = 0.015; % activation
     model_info.muscle_info.tdeact = 0.06; % deactivation

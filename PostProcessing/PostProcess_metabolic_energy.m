@@ -70,10 +70,16 @@ end
 R.metabolics.MinettiAlexander.Edot_gait = zeros(N,NMuscle);
 
 for i=1:N
-    Edot_tot_i = f_casadi.getMetabolicEnergyMinettiAlexander_multifibre(...
+    Edot_tot_i = f_casadi.getMetabolicEnergyMinettiAlexander_multifibre( ...
             reshape(R.muscles.a(i,:), NFibre, NMuscle)', R.muscles.vM(i,:)');
 
     R.metabolics.MinettiAlexander.Edot_gait(i,:) = full(Edot_tot_i)';
+end
+
+% cost of transport
+E_sum_GC_Minetti = trapz(R.time.mesh_GC(1:end-1), sum(R.metabolics.MinettiAlexander.Edot_gait, 2));
+if ~strcmp(S.misc.task, 'cycling')
+    R.metabolics.MinettiAlexander.COT = E_sum_GC_Minetti / R.misc.body_mass / R.spatiotemp.dist_trav;
 end
 %% ...
 % Please add other energy models below. 

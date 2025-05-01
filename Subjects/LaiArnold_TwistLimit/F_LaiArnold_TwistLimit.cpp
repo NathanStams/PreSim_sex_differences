@@ -352,8 +352,8 @@ int F_generic(const T** arg, T** res) {
 	/// Station locations.
 	Vec3 pedal_r_posInGround = calcn_r->findStationLocationInGround(*state, Vec3(0.15809175685227902508, -0.05445792902269121910, 0.00000000000000000000));
 	Vec3 pedal_l_posInGround = calcn_l->findStationLocationInGround(*state, Vec3(0.15809175685227902508, -0.05445792902269121910, 0.00000000000000000000));
-	Vec3 post_pedal_r_posInGround = calcn_r->findStationLocationInGround(*state, Vec3(0.12973534775419048870, -0.05445792902269121910, 0.00000000000000000000));
-	Vec3 post_pedal_l_posInGround = calcn_l->findStationLocationInGround(*state, Vec3(0.12973534775419048870, -0.05445792902269121910, 0.00000000000000000000));
+	Vec3 lat_pedal_r_posInGround = calcn_r->findStationLocationInGround(*state, Vec3(-0.02835640909808854679, -0.05445792902269121910, 0.00000000000000000000));
+	Vec3 lat_pedal_l_posInGround = calcn_l->findStationLocationInGround(*state, Vec3(-0.02835640909808854679, -0.05445792902269121910, 0.00000000000000000000));
 	Vec3 tibia_r_posInGround = tibia_r->findStationLocationInGround(*state, Vec3(0.00000000000000000000, 0.00000000000000000000, 0.00000000000000000000));
 	Vec3 tibia_l_posInGround = tibia_l->findStationLocationInGround(*state, Vec3(0.00000000000000000000, 0.00000000000000000000, 0.00000000000000000000));
 
@@ -368,8 +368,8 @@ int F_generic(const T** arg, T** res) {
 			value<T>(residualMobilityForces[indicesSimbodyInOS[i]]);
 	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 0] = value<T>(pedal_r_posInGround[i]);
 	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 3] = value<T>(pedal_l_posInGround[i]);
-	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 6] = value<T>(post_pedal_r_posInGround[i]);
-	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 9] = value<T>(post_pedal_l_posInGround[i]);
+	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 6] = value<T>(lat_pedal_r_posInGround[i]);
+	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 9] = value<T>(lat_pedal_l_posInGround[i]);
 	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 12] = value<T>(tibia_r_posInGround[i]);
 	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 15] = value<T>(tibia_l_posInGround[i]);
 	for (int i = 0; i < 3; ++i) res[0][i + nCoordinates + 18] = value<T>(pedal_r_velInGround[i]);

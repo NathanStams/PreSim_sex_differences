@@ -26,7 +26,7 @@ for c = variables
         dofs = intersect(fieldnames(R.pedal_reaction), fieldnames(ref.pedals));
     end
 
-    fig = figure('Name',c{:});
+    fig = figure('Name',c{:}, 'Position',get(0,'ScreenSize'));
     tiledlayout();
 
     for i = 1:length(dofs)
@@ -42,7 +42,7 @@ for c = variables
 
         % Use fill function to draw
         x_long = [t_ref fliplr(t_ref)];
-        y_long = [(Y - SD)' flipud(Y + SD)'];
+        y_long = [(Y - 2*SD)' flipud(Y + 2*SD)'];
         fill(x_long, y_long, 'k', 'FaceAlpha', 0.2, 'EdgeColor', 'none');
         hold on;
 
