@@ -126,6 +126,12 @@ if ~isfield(S.bounds,'SynConstr')
     S.bounds.SynConstr.upper = 0.001;
 end
 
+% bounds on stride frequency
+if ~isfield(S.bounds, 'StrideFreq')
+    S.bounds.StrideFreq.lower = [];
+    S.bounds.StrideFreq.lower = [];
+end
+
 %% metabolicE
 if ~isfield(S,'metabolicE')
     S.metabolicE = [];
@@ -728,6 +734,8 @@ end
 % Constant scaling deactivation time constants and muscle velocity
 if ~isfield(S.multifibre,'smeta') && S.multifibre.use_multifibre_muscles
     S.multifibre.smeta = linspace(1.5, 2.5, S.multifibre.NFibre);
+elseif ~isfield(S.multifibre, 'smeta')
+    S.multifibre.smeta = 2;
 end
 
 % Constant scaling deactivation time constants and muscle velocity

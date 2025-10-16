@@ -3,11 +3,11 @@ function [R] = PostProcess_muscletendon_dynamics(S, model_info,f_casadi,R)
 % PostProcess_muscletendon_dynamics
 %   This function computes the muscle-tendon forces, fiber lenghts- and
 %   velocities, and tendon lengts- and velocities.
-% 
+%
 % INPUT:
 %   - model_info -
 %   * structure with all the model information based on the OpenSim model
-% 
+%
 %   - f_casadi -
 %   * Struct containing all casadi functions.
 %
@@ -17,12 +17,12 @@ function [R] = PostProcess_muscletendon_dynamics(S, model_info,f_casadi,R)
 % OUTPUT:
 %   - R -
 %   * struct with simulation results
-% 
+%
 % Original author: Lars D'Hondt
 % Original date: 13/May/2022
 %
-% Last edit by: 
-% Last edit date: 
+% Last edit by:
+% Last edit date:
 % --------------------------------------------------------------------------
 
 N = size(R.kinematics.Qs,1);
@@ -43,18 +43,28 @@ R.muscles.vMtilde = zeros(N, NMuscle*NFibre);
 R.muscles.lT = FT;
 R.muscles.vT = FT;
 
+if S.multifibre.use_multifibre_muscles
+    R.muscles.Fcetilde = zeros(N, NMuscle*NFibre);
+end
+
 for i=1:N
 
-    [~,FTj,Fcej,Fpassj,Fisoj] = f_casadi.forceEquilibrium_FtildeState_all_tendon(reshape(R.muscles.a(i,:), NFibre, NMuscle)',...
-        R.muscles.FTtilde(i,:)',R.muscles.dFTtilde(i,:)',R.muscles.lMT(i,:)',R.muscles.vMT(i,:)',tensions);
-
+    if S.multifibre.use_multifibre_muscles
+        [~,FTj,Fcej,Fpassj,Fisoj,~,~,Fcetildej] = f_casadi.forceEquilibrium_FtildeState_all_tendon(reshape(R.muscles.a(i,:), NFibre, NMuscle)',...
+            R.muscles.FTtilde(i,:)',R.muscles.dFTtilde(i,:)',R.muscles.lMT(i,:)',R.muscles.vMT(i,:)',tensions);
+        R.muscles.Fcetilde(i,:) = reshape(full(Fcetildej)', 1, NFibre*NMuscle);
+    else
+        [~,FTj,Fcej,Fpassj,Fisoj] = f_casadi.forceEquilibrium_FtildeState_all_tendon(reshape(R.muscles.a(i,:), NFibre, NMuscle)',...
+            R.muscles.FTtilde(i,:)',R.muscles.dFTtilde(i,:)',R.muscles.lMT(i,:)',R.muscles.vMT(i,:)',tensions);
+    end
     R.muscles.FT(i,:) = full(FTj);
     R.muscles.Fce(i,:) = full(Fcej);
     R.muscles.Fpass(i,:) = full(Fpassj);
     R.muscles.Fiso(i,:) = full(Fisoj);
 
+
     [lMj,lMtildej] = f_casadi.FiberLength_TendonForce_tendon(R.muscles.FTtilde(i,:)',R.muscles.lMT(i,:)');
-    
+
     R.muscles.lM(i,:) = full(lMj);
     R.muscles.lMtilde(i,:) = full(lMtildej);
 

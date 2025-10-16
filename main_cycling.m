@@ -24,7 +24,7 @@ S.subject.name = 'LaiArnold2D_torso';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name '_multifibre'],'tact_sensitivity');
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name]);
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',[S.subject.name],'hip_strength');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 % TODO: THE INITIAL GUESS WILL LIKELY HAVE TO BE UPDATED TO EITHER A "HOT
@@ -72,8 +72,8 @@ S.misc.task = 'cycling';
 
 % S.bounds.t_final.lower = 0.01;
 S.misc.default_msk_geom_bounds = 'default_msk_geom_bounds_cycling.csv';
-% S.bounds.default_coordinate_bounds = 'Running_Coordinate_Bounds.csv';
 S.bounds.default_coordinate_bounds = 'LaiArnold_Cycling_Coordinate_Bounds.csv';
+% S.bounds.default_coordinate_bounds = 'ReducedAnkle_Cycling_Coordinate_Bounds.csv';
 S.subject.default_coord_lim_torq_coeff = 'default_coord_lim_torq_coeff_Lai.csv';
 S.OpenSimADOptions.verbose_mode = true;
 
@@ -105,11 +105,11 @@ S.cycling.I_eff = 3.456 * 1e-3 + 10.442 * gear_ratio^2;
 %% Run predictive simulations
 if S.solver.run_as_batch_job
     
-    smooth = [1 100 500 1000];
+    f_scale = [0.25 0.5 0.75];
+    for i = 1:length(f_scale)
 
-    for i = 1:length(smooth)
-    
-        S.weights.smooth = smooth(i);
+        S.subject.scale_MT_params = {{'glut_', 'add_', 'addmag', 'grac_', ...
+            'iliacus_', 'psoas_', 'bifemlh_', 'semimem_', 'semiten_'},'FMo', f_scale(i)};
         [savename] = runPredSim(S, osim_path);
     
     end

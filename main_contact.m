@@ -15,25 +15,26 @@ clc
 %% Initialize S
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
-[S] = initializeSettings('Falisse_et_al_2022');
+[S] = initializeSettings('DHondt_et_al_2024_3seg_soft_all');
 
 %% Settings
 
 % name of the subject
-S.subject.name = 'Falisse_et_al_2022';
+S.subject.name = 'DHondt_et_al_2024_3seg_soft_all';
 
 % path to folder where you want to store the results of the OCP
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name,'running_QR_guess');
-
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','ContactModel');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
+% S.solver.IG_selection = fullfile(S.misc.main_path,'OCP','IK_Guess_Full_GC.mot');
+S.solver.IG_selection_gaitCyclePercent = 100;
 S.solver.IG_selection = 'quasi-random';
 
 % Set options for multi motor unit (MMU) muscle model
 S.multifibre.use_multifibre_muscles = true;
 S.multifibre.NFibre = 2;
-S.multifibre.vMmax_range = [5 10]; % Range of max contraction velocities as multiple of optimal fibre lengths
-S.multifibre.tact_range = [0.025 0.045]; % Range of activation time constants 
+S.multifibre.vMmax_range = [5 10]; % [6 10]; % Range of max contraction velocities as multiple of optimal fibre lengths
+S.multifibre.tact_range = [0.025 0.045]; %[0.011 0.022]; % Range of activation time constants 
 S.multifibre.beta = 0.6; % deactivation time constants are given by tact * (1 / beta).
 S.multifibre.smeta = linspace(1.5, 2.5, S.multifibre.NFibre); % most efficient to least
 
@@ -51,7 +52,7 @@ S.misc.visualize_bounds = false;
 % give the path to the osim model of your subject
 osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']);
 
-S.misc.forward_velocity = 1.33;
+S.misc.forward_velocity = 4.5;
 
 % S.metabolicE.model = 'MinettiAlexander';
 
@@ -64,19 +65,8 @@ S.misc.task = 'walking';
 S.solver.run_as_batch_job = true;
 
 %% Run predictive simulations
-if S.solver.run_as_batch_job
-    speeds = [1.0 1.33 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]';
+[savename] = runPredSim(S, osim_path);
 
-    for i = 1:size(speeds, 1)
-
-        S.misc.forward_velocity = speeds(i);
-
-        [savename] = runPredSim(S, osim_path);
-        
-    end
-else
-    [savename] = runPredSim(S, osim_path);
-end
 
 %% Plot results
 % see .\PlotFigures\run_this_file_to_plot_figures.m for more

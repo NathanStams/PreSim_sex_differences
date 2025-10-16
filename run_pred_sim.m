@@ -53,12 +53,15 @@ if S.post_process.load_prev_opti_vars
 elseif S.post_process.rerun
     % load settings and model_info when only running post-processing
     Outname = fullfile(S.misc.save_folder,[S.misc.result_filename '.mat']);
+    result_filename = S.misc.result_filename;
+    save_folder = S.misc.save_folder;
     load(Outname,'R','model_info');
     S = R.S;
     S.post_process.rerun = 1;
     osim_path = model_info.osim_path;
     S = getDefaultSettings(S, osim_path); % to fill in any missing settings
-    
+    S.misc.result_filename = result_filename;
+    S.misc.save_folder = save_folder;
     R.S = S;
 
 elseif isempty(S.misc.result_filename)

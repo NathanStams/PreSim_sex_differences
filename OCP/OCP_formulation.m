@@ -116,6 +116,7 @@ opti = casadi.Opti();
 tf = opti.variable();
 opti.subject_to(bounds.tf.lower < tf < bounds.tf.upper);
 opti.set_initial(tf, guess.tf);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Define states
 % Muscle activations at mesh points
@@ -730,6 +731,12 @@ dist_trav_tot = Qs_nsc(model_info.ExtFunIO.jointi.base_forward,end) - ...
     Qs_nsc(model_info.ExtFunIO.jointi.base_forward,1);
 vel_aver_tot = dist_trav_tot/tf;
 opti.subject_to(vel_aver_tot - S.misc.forward_velocity == 0)
+
+% Constrain stride frequency
+if ~isempty(S.bounds.StrideFreq.lower) && ~isempty(S.bounds.StrideFreq.upper)
+    stride_freq = 1/tf;
+    opti.subject_to(S.bounds.StrideFreq.lower < stride_freq < S.bounds.StrideFreq.upper);
+end
 
 % optional constraints
 if strcmp(S.misc.gaitmotion_type,'HalfGaitCycle')

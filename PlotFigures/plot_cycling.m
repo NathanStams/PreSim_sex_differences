@@ -84,4 +84,10 @@ for c = variables
         close(fig);
     end
 end
+
+% Plot data that does not have reference data
+variables = {'T_ID', 'activations'};
+for c = variables
+
+end
 end

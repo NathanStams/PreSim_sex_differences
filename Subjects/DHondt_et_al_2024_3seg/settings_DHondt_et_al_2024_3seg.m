@@ -32,8 +32,6 @@ S.subject.muscle_pass_stiff_shift =...
     {{'soleus','_gas','per_','tib_','_dig_','_hal_'},0.9};
 S.subject.tendon_stiff_scale = {{'soleus','_gas'},0.5};
 
-
-
 % to prevent body segments from clipping into eachother
 S.bounds.distanceConstraints(1).point1 = 'calcn_r';
 S.bounds.distanceConstraints(1).point2 = 'calcn_l';

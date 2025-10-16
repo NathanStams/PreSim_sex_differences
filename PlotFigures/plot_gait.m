@@ -18,8 +18,11 @@ load(sim_paths{1}, 'R');
 
 % Define reference and simulation parameters
 variables = {'kinematics', 'kinetics'};
-cmap = parula(length(sim_paths));
-
+if length(sim_paths) > 1
+    cmap = parula(length(sim_paths));
+else
+    cmap = [0 0 0];
+end
 % Plot reference data
 for c = variables
     if plot_reference
@@ -36,7 +39,11 @@ for c = variables
     end
 
     fig = figure('Name',c{:},'Position',get(0,'ScreenSize'));
-    tiledlayout('flow');
+    if strcmp(c, 'kinematics')
+        tiledlayout('flow');
+    else
+        tiledlayout(4,4);
+    end
 
     if plot_reference
         for i = 1:length(dofs)
@@ -93,7 +100,7 @@ for c = variables
 
     % Save plot
     if exist('save_path', 'var')
-        exportgraphics(fig, fullfile(save_path, [c{:} '.' file_type]));
+        saveas(fig, fullfile(save_path, [c{:} '.' file_type]));
         close(fig);
     end
 end
@@ -141,7 +148,11 @@ for i = 1:length(sim_paths)
         nexttile(j);
         tmp = strsplit(dofs{j}, '_');
         fld = strjoin(tmp([1 end]), '_');
-        idx = strcmp(R.colheaders.GRF, ref.mapping.grf.(strjoin(tmp(1:2), '_')));
+        if isfield(ref, 'mapping')
+            idx = strcmp(R.colheaders.GRF, ref.mapping.grf.(strjoin(tmp(1:2), '_')));
+        else
+            idx = strcmp(R.colheaders.GRF, dofs{j});
+        end
 
         % Plot simulation
         plot(t_sim, R.ground_reaction.(fld)(:, idx), 'LineStyle', '-', 'Color', cmap(i, :), 'LineWidth', 1);
@@ -159,7 +170,7 @@ leg.Layout.Tile = 'south';
 
 % Save plot
 if exist('save_path', 'var')
-    exportgraphics(fig, fullfile(save_path, ['GRF.' file_type]));
+    saveas(fig, fullfile(save_path, ['GRF.' file_type]));
     close(fig);
 end
 
@@ -167,7 +178,7 @@ end
 fig = figure('Name', 'a','Position',get(0,'ScreenSize'));
 tiledlayout('flow');
 
-if plot_reference
+if plot_reference && ~isempty(ref.mapping.emg)
     muscles = fieldnames(ref.mapping.emg);
     st_ratio = getSlowTwitchRatios(muscles);
     t_ref = ref.EMG.GC_percent;
@@ -208,7 +219,7 @@ if plot_reference
     end
 end
 
-if ~plot_reference
+if ~plot_reference || isempty(ref.mapping.emg)
     load(sim_paths{1}, 'R');
     muscles = sort(R.colheaders.muscles);
     st_ratio = getSlowTwitchRatios(muscles);
@@ -221,7 +232,7 @@ for i = 1:length(sim_paths)
         load(sim_paths{i}, 'R');
     end
 
-    if plot_reference
+    if plot_reference && ~isempty(ref.mapping.emg)
     t_sim = linspace(ref.EMG.GC_percent(1), ref.EMG.GC_percent(end), size(R.muscles.a, 1));
     else
         t_sim = linspace(0, 100, size(R.muscles.a, 1));
@@ -268,7 +279,7 @@ leg.Layout.Tile = 'south';
 
 % Save plot
 if exist('save_path', 'var')
-    exportgraphics(fig, fullfile(save_path, ['activations.' file_type]));
+    saveas(fig, fullfile(save_path, ['activations.' file_type]));
     close(fig);
 end
 
