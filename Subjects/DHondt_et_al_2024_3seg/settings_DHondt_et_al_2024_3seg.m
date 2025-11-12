@@ -12,7 +12,7 @@
 
 S.subject.name = 'DHondt_et_al_2024_3seg';
 
-S.misc.forward_velocity = 1.33;
+%S.misc.forward_velocity = 1.33;
 
 S.solver.N_meshes = 100;
 
@@ -30,7 +30,7 @@ S.subject.set_damping_coefficient_selected_dofs = {'mtp_angle',2};
 
 S.subject.muscle_pass_stiff_shift =...
     {{'soleus','_gas','per_','tib_','_dig_','_hal_'},0.9};
-S.subject.tendon_stiff_scale = {{'soleus','_gas'},0.5};
+%S.subject.tendon_stiff_scale = {{'soleus','_gas'},0.5};
 
 % to prevent body segments from clipping into eachother
 S.bounds.distanceConstraints(1).point1 = 'calcn_r';
