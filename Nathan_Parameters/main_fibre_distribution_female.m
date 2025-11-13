@@ -71,7 +71,7 @@ S.solver.run_as_batch_job = true;
 %Convert 10% of fast twitch fibres to slow twitch (increase slow twitch
 %ratio from 0.555402174 average to 0.6)
  
-S.param_shift.fast_to_slow(muscleNames) = 0.9;
+S.param_shift.fast_to_slow = 0.9;
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job

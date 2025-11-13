@@ -12,11 +12,6 @@ clc
 % path to the folder that contains the repository folder
 [pathRepoFolder,~,~] = fileparts(pathRepo);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Convert 19% of slow twitch fibres to fast twitch (decrease slow twitch
-%ratio from 0.555402174 average to 0.45)
-S.param_shift.slow_to_fast(muscleNames) = 0.81;
-
 %% Initialize S
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
@@ -27,14 +22,15 @@ addpath(fullfile(pathRepo,'DefaultSettings'))
 
 % name of the subject
 % S.subject.name = 'DHondt_et_al_2024_3seg';
-S.subject.name = 'DHondt_et_al_2024_3seg_modified';
+S.subject.name = 'DHondt_et_al_2024_3seg';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name,'running');
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','model_parameters_running','mtp_damping_light_foot');
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','fibre_type_distribution_sex_differences');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 S.solver.IG_selection = 'quasi-random';
+S.solver.IG_selection_gaitCyclePercent = 100;
 
 % Set options for multi motor unit (MMU) muscle model
 S.multifibre.use_multifibre_muscles = false;
@@ -69,6 +65,11 @@ S.misc.task = 'walking';
 % Run simulations as batch jobs, such that multiple simulations can run at
 % the same time.
 S.solver.run_as_batch_job = true;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Convert 19% of slow twitch fibres to fast twitch (decrease slow twitch
+%ratio from 0.555402174 average to 0.45)
+S.param_shift.slow_to_fast = 0.81;
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job

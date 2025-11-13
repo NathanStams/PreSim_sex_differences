@@ -16,17 +16,17 @@ clc
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
 % [S] = initializeSettings('DHondt_et_al_2024_3seg');
-[S] = initializeSettings('DHondt_et_al_2024_3seg_modified');
+[S] = initializeSettings('DHondt_et_al_2024_3seg');
 
 %% Settings
 
 % name of the subject
 % S.subject.name = 'DHondt_et_al_2024_3seg';
-S.subject.name = 'DHondt_et_al_2024_3seg_modified';
+S.subject.name = 'DHondt_et_al_2024_3seg';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name,'running');
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','model_parameters_running','mtp_damping_light_foot');
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','both_parameters_sex differences');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 S.solver.IG_selection = 'quasi-random';
@@ -53,8 +53,6 @@ S.misc.visualize_bounds = false;
 % give the path to the osim model of your subject
 osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']);
 
-S.misc.forward_velocity = 4.5;
-
 % S.metabolicE.model = 'MinettiAlexander';
 
 % S.bounds.t_final.lower = 0.01;
@@ -69,7 +67,7 @@ S.solver.run_as_batch_job = true;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Convert 19% of slow twitch fibres to fast twitch (decrease slow twitch
 %ratio from 0.555402174 average to 0.45)
-S.param_shift.slow_to_fast(muscleNames) = 0.81;
+S.param_shift.slow_to_fast = 0.81;
 
 %Soleus and Gastrocnemius tendon stiffness decreased by 40% from
 %default(k=35 at 4% strain).
@@ -79,11 +77,9 @@ S.subject.tendon_stiff_scale = {{'soleus','_gas'},0.6};
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job
-    mtp_damping = [0.4 0.5 1.0 1.5 2.0]';
-
-    for i = 1:size(mtp_damping, 1)
-
-        S.subject.set_damping_coefficient_selected_dofs = {'mtp_angle',mtp_damping(i)};
+    speeds= [1.33, 4.0];
+    for i = 1:length(speeds)
+        S.misc.forward_velocity = speeds(i);
 
         [savename] = runPredSim(S, osim_path);
         

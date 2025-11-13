@@ -16,17 +16,17 @@ clc
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
 % [S] = initializeSettings('DHondt_et_al_2024_3seg');
-[S] = initializeSettings('DHondt_et_al_2024_3seg_modified');
+[S] = initializeSettings('DHondt_et_al_2024_3seg');
 
 %% Settings
 
 % name of the subject
 % S.subject.name = 'DHondt_et_al_2024_3seg';
-S.subject.name = 'DHondt_et_al_2024_3seg_modified';
+S.subject.name = 'DHondt_et_al_2024_3seg';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name,'running');
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','model_parameters_running','mtp_damping_light_foot');
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','both_parameters_sex differences');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 S.solver.IG_selection = 'quasi-random';
@@ -53,7 +53,6 @@ S.misc.visualize_bounds = false;
 % give the path to the osim model of your subject
 osim_path = fullfile(pathRepo,'Subjects',S.subject.name,[S.subject.name '.osim']);
 
-S.misc.forward_velocity = 4.5;
 
 % S.metabolicE.model = 'MinettiAlexander';
 
@@ -70,7 +69,7 @@ S.solver.run_as_batch_job = true;
 %Convert 10% of fast twitch fibres to slow twitch (increase slow twitch
 %ratio from 0.555402174 average to 0.6)
  
-S.param_shift.fast_to_slow(muscleNames) = 0.9;
+S.param_shift.fast_to_slow = 0.9;
 
 %Soleus and Gastrocnemius tendon stiffness decreased by 61% from
 %default(k=35 at 4% strain). 65% of achilles tendon stiffness compared to males
@@ -81,11 +80,9 @@ S.subject.tendon_stiff_scale = {{'rect_fem','vas_med', 'vas_lat', 'vas_int' },0.
 
 %% Run predictive simulations
 if S.solver.run_as_batch_job
-    mtp_damping = [0.4 0.5 1.0 1.5 2.0]';
-
-    for i = 1:size(mtp_damping, 1)
-
-        S.subject.set_damping_coefficient_selected_dofs = {'mtp_angle',mtp_damping(i)};
+    speeds= [1.33, 4.0];
+    for i = 1:length(speeds)
+        S.misc.forward_velocity = speeds(i);
 
         [savename] = runPredSim(S, osim_path);
         
@@ -93,7 +90,6 @@ if S.solver.run_as_batch_job
 else
     [savename] = runPredSim(S, osim_path);
 end
-
 %% Plot results
 % see .\PlotFigures\run_this_file_to_plot_figures.m for more
 

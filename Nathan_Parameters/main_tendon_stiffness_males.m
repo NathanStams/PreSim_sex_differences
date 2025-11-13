@@ -16,20 +16,21 @@ clc
 addpath(fullfile(pathRepo,'DefaultSettings'))
 
 % [S] = initializeSettings('DHondt_et_al_2024_3seg');
-[S] = initializeSettings('DHondt_et_al_2024_3seg_modified');
+[S] = initializeSettings('DHondt_et_al_2024_3seg');
 
 %% Settings
 
 % name of the subject
 % S.subject.name = 'DHondt_et_al_2024_3seg';
-S.subject.name = 'DHondt_et_al_2024_3seg_modified';
+S.subject.name = 'DHondt_et_al_2024_3seg';
 
 % path to folder where you want to store the results of the OCP
 % S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name,'running');
-S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','model_parameters_running','mtp_damping_light_foot');
+S.misc.save_folder  = fullfile(pathRepoFolder,'PredSimResults','DHondt_et_al_2024_3seg','tendon_stiffness_sex_differences');
 
 % either choose "quasi-random" or give the path to a .mot file you want to use as initial guess
 S.solver.IG_selection = 'quasi-random';
+S.solver.IG_selection_gaitCyclePercent = 100;
 
 % Set options for multi motor unit (MMU) muscle model
 S.multifibre.use_multifibre_muscles = false;
